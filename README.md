@@ -24,16 +24,10 @@ Running the project produces:
 
 ## Data source
 
-The original analysis says the data came from Kaggle and expects a file named
-`Bank Customer Churn Prediction.csv`. Put your original CSV at:
+The original analysis's data came from Kaggle called
+`Bank Customer Churn Prediction.csv`. The original CSV is at:
 
-```text
-data/raw/Bank Customer Churn Prediction.csv
-```
-
-The raw file is not committed. The pipeline checks required columns and the binary churn target
-before any modeling begins. If your original source has redistribution restrictions, keep the raw
-file local and document how an authorized user can obtain it.
+- `data/raw/Bank Customer Churn Prediction.csv`
 
 ## Computational environment
 
@@ -155,6 +149,3 @@ Then open:
 ```text
 results/report/churn_report.html
 ```
-
-If the raw data cannot be distributed, provide the instructor with the documented data-access
-instructions or an allowed intermediate checkpoint, consistent with the course requirements.

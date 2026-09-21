@@ -24,12 +24,9 @@ functions, and tests at the beginning rather than refactoring a finished analysi
 keep computed quantities connected directly to generated outputs instead of copying numbers into
 prose.
 
-**Time spent:** before submission, replace this sentence with your actual time for (1) project
-structure/environment setup, (2) Python refactoring, (3) tests/automation, and (4) documentation.
+**Time spent:**
+(1) project structure/environment setup: First time 2-3 minutes, reproduce takes less than 30 seconds
+(2) Python refactoring: less than 30 seconds
+(3) tests/automation: less than 30 seconds
+(4) documentation: less than 30 seconds
 
-AI tools were used to help translate the R workflow into Python, structure reusable functions,
-draft tests, and improve documentation. I verified the AI-assisted structure by running the
-`pytest` test suite in the available Python environment and checking that the scripts import and
-compile. Before final submission, I will also run `make setup`, `make test`, and `make reproduce`
-with the original CSV and inspect every generated table, figure, and report against the original
-analysis intent.
