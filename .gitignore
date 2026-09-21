@@ -1,0 +1,23 @@
+# Python environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Raw/private data
+data/raw/*.csv
+
+# Generated checkpoints and artifacts
+data/processed/*.csv
+data/processed/*.json
+artifacts/models/*.joblib
+artifacts/models/*.json
+results/tables/*.csv
+results/figures/*.png
+results/report/*.html
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
