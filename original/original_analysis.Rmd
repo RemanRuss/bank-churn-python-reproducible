@@ -1,0 +1,293 @@
+---
+title: "Final Project"
+author: "Yanze Jiang"
+date: "2025-05-12"
+output: pdf_document
+---
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(skimr)
+library(janitor)
+library(GGally)
+library(caret)
+library(rpart)
+library(pROC)
+library(ggplot2)
+```
+
+# Introduction
+
+Customer churn occurs when a customer decides to stop using a company's services. In this 
+report, the main focus is on bank customer churn. For banks, losing customers means losing 
+long-term profits, so it is important to be able to predict customer churn so that banks can 
+prepare for churn in advance. In this project, a dataset from Kaggle was used, which contains 
+10,000 customer records with information such as credit score, account balance, whether the 
+customer is active, and whether they have a credit card. The target variable is whether the 
+customer churned (1 = yes, 0 = no). The hypothesis is that certain financial behaviors and 
+account characteristics are associated with customer churn. Specifically, it is assumed that 
+customers with lower credit scores, lower account balances, inactive accounts, or no credit cards 
+are more likely to leave. The goal of this project is to test this hypothesis by building a machine 
+learning model that can predict which customers are at risk of churn. 
+
+# Data Cleaning
+
+To begin, the dataset was imported and cleaned using packages like janitor and tidyverse. The 
+customer_id column was removed since it does not contribute useful information for prediction. 
+Categorical variables like gender and country were also dropped to focus on numeric features 
+only. The target variable churn was converted into a factor with two levels: “no” and “yes”. 
+The dataset was split into training (80%) and testing (20%) sets using createDataPartition() from 
+the caret package. Median imputation was applied to handle any missing values in the training 
+set. Finally, the structure of the data was checked to make sure all variables were in the correct 
+format for modeling. 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+plot_roc_auc <- function(model, test_data, response_var) {
+  probs <- predict(model, newdata = test_data, type = "prob")[, 2]
+  
+  true_labels <- test_data[[response_var]]
+  
+  if (is.factor(true_labels)) {
+    true_labels <- as.numeric(true_labels) - 1
+  }
+  
+  roc_obj <- roc(response = true_labels, predictor = probs)
+  
+  auc_val <- auc(roc_obj)
+  print(paste("AUC:", round(auc_val, 4)))
+  
+  roc_df <- data.frame(
+    fpr = 1 - roc_obj$specificities,
+    tpr = roc_obj$sensitivities
+  )
+  
+  ggplot(roc_df, aes(x = fpr, y = tpr)) +
+    geom_line(color = "blue", size = 1.2) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray") +
+    labs(title = paste("ROC Curve (AUC =", round(auc_val, 4), ")"),
+         x = "False Positive Rate",
+         y = "True Positive Rate") +
+    theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+}
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+data <- read_csv("Bank Customer Churn Prediction.csv") %>%
+  janitor::clean_names()
+
+data <- data %>%
+  select(-customer_id) %>%
+  mutate(churn = factor(churn, levels = c(0, 1), labels = c("no", "yes"))) %>%
+  mutate(across(-churn, ~ as.numeric(.))) %>% select(-gender, -country)
+
+set.seed(123)
+train_idx <- createDataPartition(data$churn, p = 0.8, list = FALSE)
+train_clean <- data[train_idx, ]
+test_clean  <- data[-train_idx, ]
+
+train_clean <- train_clean %>%
+  mutate(across(where(is.numeric), ~ ifelse(is.na(.), median(., na.rm = TRUE), .)))
+
+cat_vars <- data %>% select(where(is.factor))
+
+cat_long <- cat_vars %>%
+  pivot_longer(cols = everything(), names_to = "variable", values_to = "value")
+```
+
+# Exploratory Data Analysis (EDA)
+
+Both categorical and numeric variables were explored using graphs. A bar chart was made to 
+look at the distribution of the churn variable. Most customers stayed with the bank, and only a 
+smaller group left, showing an imbalance in the classes. 
+Histograms were used to see how numeric variables like balance, age, and credit score are 
+distributed. The balance data was skewed because many customers had very low balances (often 
+zero), and only a few had high balances. The age data was more evenly spread out, looking 
+similar to a normal distribution. The credit score histogram showed that most customers had 
+higher scores, causing a slight skew to the left. 
+These graphs made it clear if there were unusual data points (outliers) or if certain variables 
+needed adjustments, like scaling, before using them in machine learning models. 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+ggplot(cat_long, aes(x = value)) +
+  geom_bar(fill = "steelblue") +
+  facet_wrap(~ variable, scales = "free", ncol = 3) +
+  theme_minimal() +
+  labs(title = "Bar Plots of Categorical Variables", x = "Category", y = "Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+num_vars <- data %>% select(where(is.numeric))
+```
+Fig 1. Distribution of Customer Churn 
+
+This bar chart shows the number of customers who stayed versus those who churned.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+num_long <- num_vars %>%
+  pivot_longer(cols = everything(), names_to = "variable", values_to = "value")
+
+ggplot(num_long, aes(x = value)) +
+  geom_histogram(bins = 30, fill = "lightgreen", color = "black") +
+  facet_wrap(~ variable, scales = "free", ncol = 3) +
+  theme_minimal() +
+  labs(title = "Histograms of Numeric Variables", x = "Value", y = "Count")
+```
+Fig2. Histograms of Numeric Features 
+
+This set of histograms displays the distribution of key numeric variables, including balance, age, 
+and credit score. 
+
+# Modeling and Resampling 
+
+In this section, four different models were built to predict whether customers would churn. 
+Cross-validation (5-fold) was used for each model to make sure the results weren't just by 
+chance. 
+
+## Logistic Regression
+
+Logistic regression is a simple method that predicts whether a customer leaves or stays based on 
+account features. Cross-validation was used when training this model. 
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+ctrl_roc <- trainControl(
+  method = "cv",
+  number = 5,
+  classProbs = TRUE,
+  summaryFunction = twoClassSummary,
+  savePredictions = "final"
+)
+
+set.seed(123)
+logit_model <- train(
+  churn ~ ., 
+  data = train_clean,
+  method = "glm",
+  family = "binomial",
+  trControl = ctrl_roc,
+  metric = "ROC"
+)
+
+print(logit_model)
+plot_roc_auc(logit_model, test_clean, "churn")
+```
+
+The logistic regression model had an AUC score of 0.7512, showing a reasonable ability to 
+predict churn accurately. The ROC curve shows how the model balances true and false 
+predictions. 
+
+## Decision Tree
+
+A decision tree splits the data based on certain conditions to classify customers. Cross-validation 
+was also used to find the best complexity parameter (cp), which helps prevent overfitting. 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+ctrl_roc <- trainControl(
+  method = "cv",
+  number = 5,
+  classProbs = TRUE,
+  summaryFunction = twoClassSummary,
+  savePredictions = "final"
+)
+
+set.seed(123)
+tree_model <- train(
+  churn ~ .,
+  data = train_clean,
+  method = "rpart",
+  trControl = ctrl_roc,
+  metric = "ROC",
+  tuneLength = 10
+)
+
+print(tree_model)
+plot_roc_auc(tree_model, test_clean, "churn")
+```
+
+The best decision tree model achieved an AUC of 0.7454, a bit lower than logistic regression, 
+but still good enough to be useful.
+
+## KNN
+
+KNN predicts churn by looking at similar customers. Cross-validation helped find the best 
+number of neighbors (k). 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+set.seed(123)
+knn_model <- train(
+  churn ~ .,
+  data = train_clean,
+  method = "knn",
+  trControl = ctrl_roc,
+  metric = "ROC",
+  tuneLength = 10
+)
+
+
+print(knn_model)
+plot_roc_auc(knn_model, test_clean, "churn")
+```
+
+With an optimal k = 23, the KNN model only reached an AUC of 0.5543, meaning it didn't do a 
+very good job of predicting churn accurately. 
+
+## SVM
+
+SVM tries to find the best line (or boundary) separating customers who churn from those who 
+stay. The radial basis function (RBF) kernel was chosen because it's good for data that isn’t 
+easily separated by a straight line. 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+set.seed(123)
+svm_model <- train(
+  churn ~ .,
+  data = train_clean,
+  method = "svmRadial",
+  trControl = ctrl_roc,
+  metric = "ROC",
+  tuneLength = 5
+)
+
+print(svm_model)
+plot_roc_auc(svm_model, test_clean, "churn")
+```
+
+The SVM had the highest AUC (0.792) of all models tested, making it the best at predicting 
+customer churn.
+
+
+# Model Comparision and Visualization
+
+The performance of the four models was compared using ROC curves, which visually show how 
+well each model distinguishes between customers who churned and those who did not. 
+Here are the AUC results for each model: 
+
+Logistic Regression: AUC = 0.7512 
+
+Decision Tree: AUC = 0.7454 
+
+K-Nearest Neighbors (KNN): AUC = 0.5543 
+
+Support Vector Machine (SVM): AUC = 0.792 
+
+The SVM model performed the best, showing the highest AUC. This means it was most accurate 
+in identifying customers likely to churn. Logistic regression and decision tree models also 
+performed reasonably well, while KNN clearly performed the worst. 
+The strong performance of SVM might be due to its ability to capture more complex 
+relationships between variables, especially when the boundary between churn and non-churn 
+customers is not clear-cut. On the other hand, the poor performance of KNN might be because 
+the data includes variables with different scales and because KNN tends to struggle with datasets 
+having many features. 
+
+# Conclusion
+
+This project built and compared four different machine learning models (Logistic Regression, 
+Decision Tree, KNN, and SVM) to predict customer churn at a bank. Among the models, SVM 
+had the highest AUC (0.792), making it the most accurate at predicting which customers would 
+leave. Logistic regression (0.7512) and decision tree (0.7454) models also did well, while KNN 
+(0.5543) performed poorly. 
+These results supported the initial hypothesis that features like credit score, balance, customer 
+activity, and credit card ownership can effectively predict customer churn. The SVM model 
+probably performed best because it handled the complexity and nuances in the data better than 
+the other methods. 
+In the future, additional variables like gender and geography could be included to see if 
+predictions can improve further. Also, combining multiple models into an ensemble approach 
+might help achieve even better performance. 
