@@ -1,32 +1,37 @@
 # Unit 1 Project Reflection
 
-The original analysis was contained in a single R Markdown file. Data loading, cleaning,
-exploratory analysis, model fitting, evaluation, plotting, and written interpretation were mixed
-together, and the raw CSV was expected to exist in the working directory. A new user therefore
-had to infer both the execution order and the required file locations. Numerical model results
-were also typed directly into the narrative, so they could become inconsistent with a rerun.
+## What was the original state of your analysis? What made it difficult to reproduce?
 
-I transformed the analysis into a Python project with separate stages for preprocessing, model
-training, result generation, and report rendering. Reusable logic is now stored in Python
-functions, all paths are relative to the repository root, and the active workflow no longer
-requires R. The original R Markdown is retained only as an archived record of the starting
-analysis. The Python implementation preserves the original four model families and predictor
-exclusions while using scikit-learn equivalents.
+The original analysis was mainly contained in one R Markdown file. Data cleaning, modeling,
+evaluation, and visualization were mixed together, with no automated workflow, isolated
+environment, or tests.
 
-The largest reproducibility improvements are the project-local `venv`, pinned packages in
-`requirements.txt`, the single `make reproduce` command, fixed random seed 123, explicit input
-validation, training-only median imputation, and `pytest` tests. KNN and SVM are standardized
-inside scikit-learn pipelines so scaling is learned separately within each cross-validation fold.
-The generated HTML report reads the current result files, so model AUC values are never hard-coded.
+## What were the biggest challenges in the transformation?
 
-For a future project, I would create the directory structure, environment specification, reusable
-functions, and tests at the beginning rather than refactoring a finished analysis. I would also
-keep computed quantities connected directly to generated outputs instead of copying numbers into
-prose.
+The main challenge was converting the original R workflow into Python while keeping the same
+analysis structure. I also needed to separate preprocessing, modeling, evaluation, and reporting
+into independent scripts.
 
-**Time spent:**
-(1) project structure/environment setup: First time 2-3 minutes, reproduce takes less than 30 seconds
-(2) Python refactoring: less than 30 seconds
-(3) tests/automation: less than 30 seconds
-(4) documentation: less than 30 seconds
+## Which improvements had the most impact on reproducibility?
 
+The biggest improvements were the structured project folders, `requirements.txt`, automated
+`Makefile`, fixed random seed, and `pytest` tests. These changes made the project much easier to
+reproduce on another computer.
+
+## What would you do differently in a future project?
+
+I would organize the project structure and environment at the beginning instead of refactoring
+everything at the end. I would also make smaller Git commits and add tests while developing each
+component.
+
+## How long did each major component take to implement?
+
+Project structure and environment setup took about 3 minutes, Python refactoring about 1 minute,
+testing and automation about 1 minute, and documentation and final checking about 1 minute.
+
+## How did AI tools contribute, and how did you verify their output?
+
+AI tools helped translate the R workflow into Python, organize the project, draft tests, and improve
+documentation. I verified the output by running `make setup`, `make test`, and `make reproduce`,
+then checking that the tests passed and the final tables, figures, model artifacts, and HTML report
+were generated correctly.

@@ -24,10 +24,16 @@ Running the project produces:
 
 ## Data source
 
-The original analysis's data came from Kaggle called
-`Bank Customer Churn Prediction.csv`. The original CSV is at:
+The dataset is the **Bank Customer Churn Dataset** by Gaurav Topre on Kaggle:
+
+- https://www.kaggle.com/datasets/gauravtopre/bank-customer-churn-dataset
+
+Download `Bank Customer Churn Prediction.csv` from the Kaggle dataset page and place it at:
 
 - `data/raw/Bank Customer Churn Prediction.csv`
+
+The raw CSV is excluded from Git and must be obtained separately before running the full
+reproduction workflow.
 
 ## Computational environment
 
@@ -36,6 +42,11 @@ The original analysis's data came from Kaggle called
 - Python 3.13 recommended
 - GNU Make
 - Internet access for the first package installation
+
+### Windows note
+
+On Windows, run the `make` commands from **Git Bash**. The Makefile uses Unix-style shell
+commands and is not intended to be run directly from PowerShell or Command Prompt.
 
 The active analysis uses only Python. A project-local virtual environment is stored in `.venv/`
 and is excluded from Git. Exact direct package versions are recorded in `requirements.txt`.

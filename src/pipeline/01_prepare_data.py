@@ -11,7 +11,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
-from churn.functions import clean_churn_data, split_and_impute  # noqa: E402
+from churn.functions import clean_churn_data, split_and_impute
 
 RAW_PATH = ROOT / "data" / "raw" / "Bank Customer Churn Prediction.csv"
 CLEAN_PATH = ROOT / "data" / "processed" / "churn_clean.csv"
@@ -27,7 +27,7 @@ def main() -> None:
         raise FileNotFoundError(
             f"Required raw data file was not found: {RAW_PATH}\n"
             "Place 'Bank Customer Churn Prediction.csv' in data/raw/. "
-            "See data/raw/README.md."
+            "See README.md for data download instructions."
         )
 
     raw_data = pd.read_csv(RAW_PATH)

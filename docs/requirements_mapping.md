@@ -15,7 +15,7 @@
 | Data validation | Required columns + valid binary churn target |
 | Function correctness | Deterministic split + cleaning + training-only median imputation |
 | Project purpose and outputs documented | `README.md` |
-| Data source/access restrictions documented | `README.md` and `data/raw/README.md` |
+| Data source/access restrictions documented | `README.md` |
 | Exact commands for reproduction/tests | `README.md` |
 | Repository structure documented | `README.md` |
 | Expected outputs and locations | `README.md` |

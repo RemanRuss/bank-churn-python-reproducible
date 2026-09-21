@@ -18,7 +18,8 @@ check-env:
 	@test -f "$(VENV_PYTHON)" || (echo "ERROR: project environment is missing. Run 'make setup' first." && exit 1)
 
 check-data:
-	@test -f "data/raw/Bank Customer Churn Prediction.csv" || (echo "ERROR: missing data/raw/Bank Customer Churn Prediction.csv" && echo "See data/raw/README.md" && exit 1)
+	@test -f "data/raw/Bank Customer Churn Prediction.csv" || (echo "ERROR: missing data/raw/Bank Customer Churn Prediction.csv" && echo "See README.md for data download instructions." && exit 1)
+
 
 reproduce: check-env check-data
 	@echo "Reproducing bank-churn analysis with Python..."
