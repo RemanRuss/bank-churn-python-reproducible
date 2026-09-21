@@ -24,15 +24,15 @@ Running the project produces:
 
 ## Data source
 
-The dataset is the **Bank Customer Churn Dataset** by Gaurav Topre on Kaggle:
+The dataset used in this project is the Bank Customer Churn Dataset by
+Gaurav Topre on Kaggle.
 
-- https://www.kaggle.com/datasets/gauravtopre/bank-customer-churn-dataset
+A copy of `Bank Customer Churn Prediction.csv` is included in
+`data/raw/`, so the full analysis can be reproduced directly after
+cloning the repository.
 
-Download `Bank Customer Churn Prediction.csv` from the Kaggle dataset page and place it at:
-
-- `data/raw/Bank Customer Churn Prediction.csv`
-
-The raw CSV is excluded from Git and must be obtained separately before running the full
+Original source:
+https://www.kaggle.com/datasets/gauravtopre/bank-customer-churn-dataset
 reproduction workflow.
 
 ## Computational environment
